@@ -42,6 +42,8 @@ refresh_branch() {
     git branch -D "${BRANCH}"
   fi
   git checkout -b "${BRANCH}" "${NEW_HEAD}"
+  # unset upstream to avoid any push to the wrong remote by forcing push command to specify remote
+  git branch -unset-upstream "${BRANCH}"
 }
 
 REF_TREE_ROOT="refs/public_sync"
