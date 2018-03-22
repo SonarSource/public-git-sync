@@ -27,6 +27,7 @@ pause() {
   read
 }
 
+SQ_REMOTE="sq"
 REMOTE="origin"
 REF_TREE_ROOT="refs/public_sync"
 
@@ -35,6 +36,7 @@ git checkout public_master
 
 info "Pushing public_master..."
 git push "${REMOTE}" "public_master:public_master"
+git push "${SQ_REMOTE}" "public_master:master"
 
 info "Pushing refs to ${REMOTE}..."
 TMP_EXISTING_REFS_FILE=$(mktemp)
