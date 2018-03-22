@@ -45,7 +45,7 @@ if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
   git remote add "${SQ_REMOTE}" "git@github.com:SonarSource/sonarqube.git"
 fi
 
-# create "pulic_master" if doesn't exist yet
+# create "public_master" if doesn't exist yet
 if [ -z "$(git branch --list "public_master")" ]; then
   info "create branch public_master from ${PUBLIC_SQ_HEAD_SHA1}"
   git checkout -b "public_master" "${PUBLIC_SQ_HEAD_SHA1}"
