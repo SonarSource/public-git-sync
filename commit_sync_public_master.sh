@@ -12,17 +12,17 @@
 
 set -euo pipefail
 
-function info() {
+info() {
   local MESSAGE="$1"
   echo "[INFO] ${MESSAGE}"
 }
 
-function error() {
+error() {
   local MESSAGE="$1"
   echo "[ERROR] ${MESSAGE}"
 }
 
-function pause() {
+pause() {
   echo "pause..."
   read
 }

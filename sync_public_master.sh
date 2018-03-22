@@ -17,28 +17,28 @@
 
 set -euo pipefail
 
-function info() {
+info() {
   local MESSAGE="$1"
   echo "[INFO] ${MESSAGE}"
 }
 
-function error() {
+error() {
   local MESSAGE="$1"
   echo 
   echo "[ERROR] ${MESSAGE}"
 }
 
-function pause() {
+pause() {
   echo "pause..."
-  #read
+  read
 }
 
-function refresh_branch() {
+refresh_branch() {
   local BRANCH="$1"
   local NEW_HEAD="$2"
 
   info "refresh ${BRANCH} to ${NEW_HEAD}"
-  if [ -n "$(git branch --list "${BRANCH}")" ]; then
+  if [ "$(git branch --list "${BRANCH}")" ]; then
     git branch -D "${BRANCH}"
   fi
   git checkout -b "${BRANCH}" "${NEW_HEAD}"
@@ -49,8 +49,8 @@ REMOTE="origin"
 SQ_REMOTE="sq"
 TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
 
-# so that we know where we are
-git checkout "master"
+info "Fetching master..."
+git checkout "master" && git pull "${REMOTE}" "master"
 
 info "Creating SQ remote..."
 if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
@@ -75,8 +75,8 @@ if [ "${LATEST_PUBLIC_MASTER_SYNC_DATE}" != "${LATEST_MASTER_SYNC_DATE}" ]; then
   exit 1
 fi
 
-LATEST_PUBLIC_MASTER_SHA1="$(echo "${LATEST_PUBLIC_MASTER_REF}" | cut -d ' ' -f 1)"
-LATEST_MASTER_SHA1="$(echo "${LATEST_MASTER_REF}" | cut -d ' ' -f 1)"
+LATEST_PUBLIC_MASTER_SHA1="${LATEST_PUBLIC_MASTER_REF%% *}"
+LATEST_MASTER_SHA1="${LATEST_MASTER_REF%% *}"
 
 LATEST_MASTER_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" ${LATEST_MASTER_SHA1})"
 LATEST_PUBLIC_MASTER_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" ${LATEST_PUBLIC_MASTER_SHA1})"
@@ -134,6 +134,3 @@ git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "${PUBLIC_MASTER_HE
 git for-each-ref --count=2 --sort=-refname 'refs/public_sync'
 
 info "done"
-
-exit 0
-

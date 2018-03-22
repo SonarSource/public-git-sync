@@ -14,12 +14,12 @@
 
 set -euo pipefail
 
-function info() {
+info() {
   local MESSAGE="$1"
   echo "[INFO] ${MESSAGE}"
 }
 
-function error() {
+error() {
   local MESSAGE="$1"
   echo "[ERROR] ${MESSAGE}"
 }
@@ -46,13 +46,13 @@ if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
 fi
 
 # create "pulic_master" if doesn't exist yet
-if [ "$(git branch --list "public_master")" = "" ]; then
+if [ -z "$(git branch --list "public_master")" ]; then
   info "create branch public_master from ${PUBLIC_SQ_HEAD_SHA1}"
   git checkout -b "public_master" "${PUBLIC_SQ_HEAD_SHA1}"
 fi
 
 # fail if already initialized
-if [ "$(git for-each-ref --count=1 "${REF_TREE_ROOT}")" != "" ]; then
+if [ "$(git for-each-ref --count=1 "${REF_TREE_ROOT}")" ]; then
   error "References already initialized. See values below:"
   git for-each-ref "${REF_TREE_ROOT}"
   exit 1
