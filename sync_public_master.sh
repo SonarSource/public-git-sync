@@ -41,9 +41,8 @@ refresh_branch() {
   if [ "$(git branch --list "${BRANCH}")" ]; then
     git branch -D "${BRANCH}"
   fi
-  git checkout -b "${BRANCH}" "${NEW_HEAD}"
-  # unset upstream to avoid any push to the wrong remote by forcing push command to specify remote
-  git branch --unset-upstream "${BRANCH}"
+  # "--no-track" to not set upstream to avoid any push to the wrong remote by forcing push command to specify remote
+  git checkout --no-track -b "${BRANCH}" "${NEW_HEAD}"
 }
 
 REF_TREE_ROOT="refs/public_sync"
@@ -101,33 +100,31 @@ if [ "$LATEST_MASTER_SHA1" = "$MASTER_HEAD_SHA1" ]; then
 fi
 
 MASTER_HEAD_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" "${MASTER_HEAD_SHA1}")"
-info "Merging \"${MASTER_HEAD_COMMIT}\" into branch public_master..."
+info "Synchronizing \"${MASTER_HEAD_COMMIT}\" into branch public_master..."
 
 # (re)create master_work
 refresh_branch "master_work" "master"
 
-pause
 # remove private repo data since LATEST_MASTER_SHA1
-info "deleting private data from master_work"
+info "Deleting private data from master_work..."
+pause
 git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_MASTER_SHA1}..HEAD
 
-pause
 # (re)create public_master_work from public_master
 refresh_branch "public_master_work" "public_master"
 
-pause
 # update public_master_work from master
-git checkout "public_master_work"
-info "cherry-picking from master_work into public_master_work"
+info "Cherry-picking from master_work into public_master_work..."
+pause
 git cherry-pick --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_SHA1}..master_work
 
+info "Clearing any empty commit in master_work..."
 pause
-info "clear any empty commit"
 git filter-branch -f --prune-empty ${LATEST_PUBLIC_MASTER_SHA1}..HEAD
 
-pause
 # merge public_master_work into public_master (ff-only for safety)
 info "update public_master"
+pause
 git checkout "public_master"
 git merge --ff-only "public_master_work"
 
