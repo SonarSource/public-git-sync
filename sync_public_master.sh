@@ -49,21 +49,25 @@ refresh_branch() {
 REF_TREE_ROOT="refs/public_sync"
 REMOTE="origin"
 SQ_REMOTE="sq"
+SQ_REMOTE_URL="git@github.com:SonarSource/sonarqube.git"
 TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
 
-info "Fetching master..."
-git checkout "master" && git pull "${REMOTE}" "master"
-
-info "Creating SQ remote..."
-if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
-  git remote add "${SQ_REMOTE}" "git@github.com:SonarSource/sonarqube.git"
-fi
-
-info "Fetching ${SQ_REMOTE}/master and refs from remote..."
-git fetch --no-tags "${SQ_REMOTE}"
+info "Fetching branches and refs from remote ${REMOTE}..."
+git fetch --no-tags "${REMOTE}"
 git fetch --no-tags "${REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 
-# ensure we have an up to date local branch of ${SQ_REMOTE}/master
+info "Ensuring master is up to date..."
+git checkout "master" && git pull "${REMOTE}" "master"
+
+if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
+  info "Creating remote ${SQ_REMOTE}..."
+  git remote add "${SQ_REMOTE}" "${SQ_REMOTE_URL}"
+fi
+
+info "Fetching branches from remote ${SQ_REMOTE}..."
+git fetch --no-tags "${SQ_REMOTE}"
+
+# ensure we have an up to date local branch public_master of ${SQ_REMOTE}/master
 refresh_branch "public_master" "${SQ_REMOTE}/master"
 
 info "Reading references..."
