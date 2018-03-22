@@ -30,7 +30,7 @@ error() {
 
 pause() {
   echo "pause..."
-  read
+#  read
 }
 
 refresh_branch() {
