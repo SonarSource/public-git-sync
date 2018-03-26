@@ -116,7 +116,7 @@ refresh_branch "public_master_work" "public_master"
 # update public_master_work from master
 info "Cherry-picking from master_work into public_master_work..."
 pause
-git cherry-pick --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_SHA1}..master_work
+git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_SHA1}..master_work
 
 info "Clearing any empty commit in master_work..."
 pause
