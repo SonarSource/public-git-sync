@@ -45,6 +45,28 @@ recreate_and_checkout() {
   git checkout --no-track -b "${BRANCH}" "${NEW_HEAD}"
 }
 
+latest_ref() {
+  local pattern="$1"
+  git for-each-ref --count=1 --sort=-refname "$pattern" --format='%(refname)'
+}
+
+sync_date() {
+  local ref="$1"
+  cut -d/ -f3 <<< "$ref"
+}
+
+sha1() {
+  git rev-parse "$1"
+}
+
+same_refs() {
+  [ "$(sha1 "$1")" = "$(sha1 "$2")" ]
+}
+
+commit() {
+  git log -n 1 --pretty="%h - %s (%an %cr)" "$1"
+}
+
 REF_TREE_ROOT="refs/public_sync"
 REMOTE="origin"
 SQ_REMOTE="sq"
@@ -70,45 +92,37 @@ git fetch --no-tags "${SQ_REMOTE}"
 recreate_and_checkout "public_master" "${SQ_REMOTE}/master"
 
 info "Reading references..."
-LATEST_PUBLIC_MASTER_REF="$(git for-each-ref --count=1 --sort=-refname 'refs/public_sync/*/public_master')"
-LATEST_MASTER_REF="$(git for-each-ref --count=1 --sort=-refname 'refs/public_sync/*/master')"
-LATEST_PUBLIC_MASTER_SYNC_DATE=$(echo "${LATEST_PUBLIC_MASTER_REF}" | cut -f 2 | cut -d '/' -f 3)
-LATEST_MASTER_SYNC_DATE=$(echo "${LATEST_MASTER_REF}" | cut -f 2 | cut -d '/' -f 3)
+LATEST_PUBLIC_MASTER_REF="$(latest_ref "${REF_TREE_ROOT}/*/public_master")"
+LATEST_MASTER_REF="$(latest_ref "${REF_TREE_ROOT}/*/master")"
+LATEST_PUBLIC_MASTER_SYNC_DATE=$(sync_date "${LATEST_PUBLIC_MASTER_REF}")
+LATEST_MASTER_SYNC_DATE=$(sync_date "${LATEST_MASTER_REF}")
 
 if [ "${LATEST_PUBLIC_MASTER_SYNC_DATE}" != "${LATEST_MASTER_SYNC_DATE}" ]; then
   error "Sync date of master (${LATEST_MASTER_SYNC_DATE}) and public_master (${LATEST_PUBLIC_MASTER_SYNC_DATE}) are not consistent. Cannot proceed."
   exit 1
 fi
 
-LATEST_PUBLIC_MASTER_SHA1="${LATEST_PUBLIC_MASTER_REF%% *}"
-LATEST_MASTER_SHA1="${LATEST_MASTER_REF%% *}"
+info "Latest sync merged \"$(commit "${LATEST_MASTER_REF}")\" into branch public_master as \"$(commit "${LATEST_PUBLIC_MASTER_REF}")\" with timestamp \"${LATEST_MASTER_SYNC_DATE}\""
 
-LATEST_MASTER_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" ${LATEST_MASTER_SHA1})"
-LATEST_PUBLIC_MASTER_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" ${LATEST_PUBLIC_MASTER_SHA1})"
-info "Latest sync merged \"${LATEST_MASTER_COMMIT}\" into branch public_master as \"${LATEST_PUBLIC_MASTER_COMMIT}\" with timestamp \"${LATEST_MASTER_SYNC_DATE}\""
-
-PUBLIC_MASTER_HEAD_SHA1="$(git log -1 --pretty="%H" "public_master")"
-if [ "${PUBLIC_MASTER_HEAD_SHA1}" != "${LATEST_PUBLIC_MASTER_SHA1}" ]; then
-  error "Latest reference to public master (${LATEST_PUBLIC_MASTER_SHA1}) is not HEAD of branch public_master. Previous run of synchonization script left an inconsistent state"
+if ! same_refs "public_master" "${LATEST_PUBLIC_MASTER_REF}"; then
+  error "Latest reference to public master ($(sha1 "${LATEST_PUBLIC_MASTER_REF}")) is not HEAD of branch public_master. Previous run of synchonization script left an inconsistent state"
   exit 1
 fi
 
-MASTER_HEAD_SHA1=$(git log -1 --pretty="%H" "master")
-if [ "$LATEST_MASTER_SHA1" = "$MASTER_HEAD_SHA1" ]; then
+if same_refs "master" "${LATEST_MASTER_REF}"; then
   info "no new commit to merge"
   exit 0
 fi
 
-MASTER_HEAD_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" "${MASTER_HEAD_SHA1}")"
-info "Synchronizing \"${MASTER_HEAD_COMMIT}\" into branch public_master..."
+info "Synchronizing \"$(commit "master")\" into branch public_master..."
 
 # (re)create master_work
 recreate_and_checkout "master_work" "master"
 
-# remove private repo data since LATEST_MASTER_SHA1
+# remove private repo data since LATEST_MASTER_REF
 info "Deleting private data from master_work..."
 pause
-git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_MASTER_SHA1}..HEAD
+git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_MASTER_REF}..HEAD
 
 # (re)create public_master_work from public_master
 recreate_and_checkout "public_master_work" "public_master"
@@ -116,11 +130,11 @@ recreate_and_checkout "public_master_work" "public_master"
 # update public_master_work from master
 info "Cherry-picking from master_work into public_master_work..."
 pause
-git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_SHA1}..master_work
+git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_REF}..master_work
 
 info "Clearing any empty commit in master_work..."
 pause
-git filter-branch -f --prune-empty ${LATEST_PUBLIC_MASTER_SHA1}..HEAD
+git filter-branch -f --prune-empty ${LATEST_PUBLIC_MASTER_REF}..HEAD
 
 # merge public_master_work into public_master (ff-only for safety)
 info "update public_master"
@@ -129,11 +143,10 @@ git checkout "public_master"
 git merge --ff-only "public_master_work"
 
 info "create refs"
-PUBLIC_MASTER_HEAD_SHA1="$(git log -1 --pretty="%H" "public_master")"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "${MASTER_HEAD_SHA1}"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "${PUBLIC_MASTER_HEAD_SHA1}"
+git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "master"
+git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "public_master"
 
 # log created references
-git for-each-ref --count=2 --sort=-refname 'refs/public_sync'
+git for-each-ref --count=2 --sort=-refname "${REF_TREE_ROOT}"
 
 info "done"
