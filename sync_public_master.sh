@@ -33,7 +33,7 @@ pause() {
 #  read
 }
 
-refresh_branch() {
+recreate_and_checkout() {
   local BRANCH="$1"
   local NEW_HEAD="$2"
 
@@ -67,7 +67,7 @@ info "Fetching branches from remote ${SQ_REMOTE}..."
 git fetch --no-tags "${SQ_REMOTE}"
 
 # ensure we have an up to date local branch public_master of ${SQ_REMOTE}/master
-refresh_branch "public_master" "${SQ_REMOTE}/master"
+recreate_and_checkout "public_master" "${SQ_REMOTE}/master"
 
 info "Reading references..."
 LATEST_PUBLIC_MASTER_REF="$(git for-each-ref --count=1 --sort=-refname 'refs/public_sync/*/public_master')"
@@ -103,7 +103,7 @@ MASTER_HEAD_COMMIT="$(git log -1 --pretty="%h - %s (%an %cr)" "${MASTER_HEAD_SHA
 info "Synchronizing \"${MASTER_HEAD_COMMIT}\" into branch public_master..."
 
 # (re)create master_work
-refresh_branch "master_work" "master"
+recreate_and_checkout "master_work" "master"
 
 # remove private repo data since LATEST_MASTER_SHA1
 info "Deleting private data from master_work..."
@@ -111,7 +111,7 @@ pause
 git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_MASTER_SHA1}..HEAD
 
 # (re)create public_master_work from public_master
-refresh_branch "public_master_work" "public_master"
+recreate_and_checkout "public_master_work" "public_master"
 
 # update public_master_work from master
 info "Cherry-picking from master_work into public_master_work..."
