@@ -41,7 +41,7 @@ info "Syncing refs from remote..."
 git fetch "${REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 
 info "Creating SQ remote..."
-if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
+if ! git remote | grep -qxF "${SQ_REMOTE}"; then
   git remote add "${SQ_REMOTE}" "git@github.com:SonarSource/sonarqube.git"
 fi
 

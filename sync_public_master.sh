@@ -58,7 +58,7 @@ git fetch --no-tags "${REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 info "Ensuring master is up to date..."
 git checkout "master" && git pull "${REMOTE}" "master"
 
-if ! $(git remote | grep -qxF "${SQ_REMOTE}"); then
+if ! git remote | grep -qxF "${SQ_REMOTE}"; then
   info "Creating remote ${SQ_REMOTE}..."
   git remote add "${SQ_REMOTE}" "${SQ_REMOTE_URL}"
 fi
