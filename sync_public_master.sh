@@ -17,6 +17,30 @@
 
 set -euo pipefail
 
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+cherry_pick_failed=
+cherry_pick_sh=cherry-pick.$$.sh
+
+# create script header where cherry-pick commands will be appended
+# to help recovery in case of a failure in the cherry-picking step
+cat << "EOF" > "$cherry_pick_sh"
+#!/bin/bash
+
+set -xeuo pipefail
+
+EOF
+
+cherry_pick() {
+  if [ ! "$cherry_pick_failed" ]; then
+    if ! git cherry-pick "$@"; then
+      cherry_pick_failed=yes
+    fi
+  else
+    echo "git cherry-pick $@" >> "$cherry_pick_sh"
+  fi
+}
+
 info() {
   local MESSAGE="$1"
   echo "[INFO] ${MESSAGE}"
@@ -85,7 +109,6 @@ REF_TREE_ROOT="refs/public_sync"
 REMOTE="origin"
 SQ_REMOTE="sq"
 SQ_REMOTE_URL="git@github.com:SonarSource/sonarqube.git"
-TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
 
 info "Fetching branches and refs from remote ${REMOTE}..."
 git fetch --no-tags "${REMOTE}"
@@ -152,26 +175,20 @@ for sha1 in $(git rev-list --reverse ${LATEST_MASTER_REF}..master_work); do
   else
     mainline_args='-m 2'
   fi
-  git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours $mainline_args "$sha1"
+  cherry_pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours $mainline_args "$sha1"
 done
 
-validate_public_equivalent_refs "public_master" "master"
+if [ "$cherry_pick_failed" ]; then
+  error "Failure was detected during cherry-pick, aborting."
+  info "Resolve the current cherry-pick, and then run bash $cherry_pick_sh to continue."
+  info "Finally, run finish_sync_public_master.sh to complete the recovery."
+  exit 1
+fi
 
-info "Clearing any empty commit in master_work..."
-pause
-git filter-branch -f --prune-empty ${LATEST_PUBLIC_MASTER_REF}..HEAD
+validate_public_equivalent_refs "HEAD" "master"
 
-# merge public_master_work into public_master (ff-only for safety)
-info "update public_master"
-pause
-git checkout "public_master"
-git merge --ff-only "public_master_work"
+if [ ! "$cherry_pick_failed" ]; then
+  rm "$cherry_pick_sh"
+fi
 
-info "create refs"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "master"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "public_master"
-
-# log created references
-git for-each-ref --count=2 --sort=-refname "${REF_TREE_ROOT}"
-
-info "done"
+"$script_dir/finish_sync_public_master.sh"
