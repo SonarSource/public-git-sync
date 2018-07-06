@@ -76,6 +76,11 @@ commit() {
   git log -n 1 --pretty="%h - %s (%an %cr)" "$1"
 }
 
+has_single_parent() {
+  local parents=$(git show -s --pretty=%P "$1")
+  [[ $parents != *\ * ]]
+}
+
 REF_TREE_ROOT="refs/public_sync"
 REMOTE="origin"
 SQ_REMOTE="sq"
@@ -139,9 +144,16 @@ git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unma
 recreate_and_checkout "public_master_work" "public_master"
 
 # update public_master_work from master
-info "Cherry-picking from master_work into public_master_work..."
+info "Cherry-picking from master_work (${LATEST_MASTER_REF}) into public_master_work..."
 pause
-git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_REF}..master_work
+for sha1 in $(git rev-list --reverse ${LATEST_MASTER_REF}..master_work); do
+  if has_single_parent "$sha1"; then
+    mainline_args=
+  else
+    mainline_args='-m 2'
+  fi
+  git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours $mainline_args "$sha1"
+done
 
 validate_public_equivalent_refs "public_master" "master"
 
