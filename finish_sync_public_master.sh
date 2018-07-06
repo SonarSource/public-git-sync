@@ -28,6 +28,15 @@ latest_ref() {
   git for-each-ref --count=1 --sort=-refname "$pattern" --format='%(refname)'
 }
 
+# Verify that two refs are "public-equivalent": only have differences in private/
+validate_public_equivalent_refs() {
+  if git diff --name-only "$1" "$2" | grep -q "^private/"; then
+    error "Illegal state: '$1' and '$2' should only differ in private/"
+    info "Investigate the output of: git diff --name-only $1 $2"
+    exit 1
+  fi
+}
+
 REF_TREE_ROOT="refs/public_sync"
 TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
 
@@ -43,6 +52,8 @@ info "update public_master"
 pause
 git checkout "public_master"
 git merge --ff-only "public_master_work"
+
+validate_public_equivalent_refs "public_master" "master"
 
 info "create refs"
 git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "master"
