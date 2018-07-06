@@ -185,8 +185,6 @@ if [ "$cherry_pick_failed" ]; then
   exit 1
 fi
 
-validate_public_equivalent_refs "HEAD" "master"
-
 if [ ! "$cherry_pick_failed" ]; then
   rm "$cherry_pick_sh"
 fi
