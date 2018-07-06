@@ -63,6 +63,15 @@ same_refs() {
   [ "$(sha1 "$1")" = "$(sha1 "$2")" ]
 }
 
+# Verify that two refs are "public-equivalent": only have differences in private/
+validate_public_equivalent_refs() {
+  if git diff --name-only "$1" "$2" | grep -q "^private/"; then
+    error "Illegal state: '$1' and '$2' should only differ in private/"
+    info "Investigate the output of: git diff --name-only $1 $2"
+    exit 1
+  fi
+}
+
 commit() {
   git log -n 1 --pretty="%h - %s (%an %cr)" "$1"
 }
@@ -90,6 +99,8 @@ git fetch --no-tags "${SQ_REMOTE}"
 
 # ensure we have an up to date local branch public_master of ${SQ_REMOTE}/master
 recreate_and_checkout "public_master" "${SQ_REMOTE}/master"
+
+validate_public_equivalent_refs "public_master" "master"
 
 info "Reading references..."
 LATEST_PUBLIC_MASTER_REF="$(latest_ref "${REF_TREE_ROOT}/*/public_master")"
@@ -131,6 +142,8 @@ recreate_and_checkout "public_master_work" "public_master"
 info "Cherry-picking from master_work into public_master_work..."
 pause
 git cherry-pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours ${LATEST_MASTER_REF}..master_work
+
+validate_public_equivalent_refs "public_master" "master"
 
 info "Clearing any empty commit in master_work..."
 pause
