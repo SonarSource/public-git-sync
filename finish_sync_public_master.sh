@@ -53,7 +53,8 @@ pause
 git checkout "public_master"
 git merge --ff-only "public_master_work"
 
-validate_public_equivalent_refs "public_master" "master"
+#TODO reactivate in prod
+#validate_public_equivalent_refs "public_master" "master"
 
 info "create refs"
 git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "master"

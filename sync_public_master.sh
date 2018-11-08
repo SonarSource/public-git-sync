@@ -10,8 +10,11 @@
 ## apply only to public content.
 ##
 ## Branch "public_master" can then merged fast-forward only into branch "master" of
-## repository SonarSource/sonarqube.
+## repository public repository.
 ##
+## parameters: 
+## PUBLIC_REMOTE: slang or sq
+## PUBLIC_REMOTE_URL: git@github.com:SonarSource/slang.git or git@github.com:SonarSource/sonarqube.git
 ##
 ##############################################################################################
 
@@ -106,29 +109,30 @@ has_single_parent() {
 }
 
 REF_TREE_ROOT="refs/public_sync"
-REMOTE="origin"
-SQ_REMOTE="sq"
-SQ_REMOTE_URL="git@github.com:SonarSource/sonarqube.git"
+PRIVATE_REMOTE="origin"
+PUBLIC_REMOTE=$1
+PUBLIC_REMOTE_URL=$2
 
-info "Fetching branches and refs from remote ${REMOTE}..."
-git fetch --no-tags "${REMOTE}"
-git fetch --no-tags "${REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
+info "Fetching branches and refs from remote ${PRIVATE_REMOTE}..."
+git fetch --no-tags "${PRIVATE_REMOTE}"
+git fetch --no-tags "${PRIVATE_REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 
 info "Ensuring master is up to date..."
-git checkout "master" && git pull "${REMOTE}" "master"
+git checkout "master" && git pull "${PRIVATE_REMOTE}" "master"
 
-if ! git remote | grep -qxF "${SQ_REMOTE}"; then
-  info "Creating remote ${SQ_REMOTE}..."
-  git remote add "${SQ_REMOTE}" "${SQ_REMOTE_URL}"
+if ! git remote | grep -qxF "${PUBLIC_REMOTE}"; then
+  info "Creating remote ${PUBLIC_REMOTE}..."
+  git remote add "${PUBLIC_REMOTE}" "${PUBLIC_REMOTE_URL}"
 fi
 
-info "Fetching branches from remote ${SQ_REMOTE}..."
-git fetch --no-tags "${SQ_REMOTE}"
+info "Fetching branches from remote ${PUBLIC_REMOTE}..."
+git fetch --no-tags "${PUBLIC_REMOTE}"
 
-# ensure we have an up to date local branch public_master of ${SQ_REMOTE}/master
-recreate_and_checkout "public_master" "${SQ_REMOTE}/master"
+# ensure we have an up to date local branch public_master of ${PUBLIC_REMOTE}/master
+recreate_and_checkout "public_master" "${PUBLIC_REMOTE}/master"
 
-validate_public_equivalent_refs "public_master" "master"
+#TODO reactivate in prod
+#validate_public_equivalent_refs "public_master" "master"
 
 info "Reading references..."
 LATEST_PUBLIC_MASTER_REF="$(latest_ref "${REF_TREE_ROOT}/*/public_master")"

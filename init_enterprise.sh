@@ -2,12 +2,17 @@
 
 ##############################################################################################
 ##
-## This script is intended to be run on a clone of repository SonarSource/sonar-enterprise.
+## This script is intended to be run on a clone of repository SonarSource/sonar-enterprise 
+## or slang-enterprise
 ##
 ## This script set the initial tags on branches "master" and "public_master" on which
 ## script update_public_master.sh will rely on to work.
 ##
 ## This script will detect and fail if tags are already present.
+##
+## parameters: 
+## PUBLIC_REMOTE: slang or sq
+## PUBLIC_REMOTE_URL: git@github.com:SonarSource/slang.git or git@github.com:SonarSource/sonarqube.git
 ##
 ##############################################################################################
 
@@ -24,13 +29,14 @@ error() {
   echo "[ERROR] ${MESSAGE}"
 }
 
-REMOTE="origin"
-SQ_REMOTE="sq"
+PRIVATE_REMOTE="origin"
+PUBLIC_REMOTE=$1
+PUBLIC_REMOTE_URL=$2
 REF_TREE_ROOT="refs/public_sync"
-# in branch master_public, created from SonarSource/sonarqube master
-PUBLIC_SQ_HEAD_SHA1="73e39a73e70b97ab0043cf5abc4eddcf68f2ce00"
+# in branch master_public, created from SonarSource/slang master
+PUBLIC_PROJECT_HEAD_SHA1="88b6f0111c4bfdb243b9beaa531a6c7a49ac30b0"
 # in branch master
-SQ_MERGE_COMMIT_SHA1="b4eeaaa8b52bf9a51c2e4bf18436831ccb389146"
+PROJECT_MERGE_COMMIT_SHA1="d169e263121b02a1332e8936793705820c7a10d3"
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
@@ -38,17 +44,17 @@ TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 git checkout master
 
 info "Syncing refs from remote..."
-git fetch "${REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
+git fetch "${PRIVATE_REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 
 info "Creating SQ remote..."
-if ! git remote | grep -qxF "${SQ_REMOTE}"; then
-  git remote add "${SQ_REMOTE}" "git@github.com:SonarSource/sonarqube.git"
+if ! git remote | grep -qxF "${PUBLIC_REMOTE}"; then
+  git remote add "${PUBLIC_REMOTE}" "${PUBLIC_REMOTE_URL}"
 fi
 
 # create "public_master" if doesn't exist yet
 if [ -z "$(git branch --list "public_master")" ]; then
-  info "create branch public_master from ${PUBLIC_SQ_HEAD_SHA1}"
-  git checkout -b "public_master" "${PUBLIC_SQ_HEAD_SHA1}"
+  info "create branch public_master from ${PUBLIC_PROJECT_HEAD_SHA1}"
+  git checkout -b "public_master" "${PUBLIC_PROJECT_HEAD_SHA1}"
 fi
 
 # fail if already initialized
@@ -59,8 +65,8 @@ if [ "$(git for-each-ref --count=1 "${REF_TREE_ROOT}")" ]; then
 fi
 
 info "create inital refs"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "${SQ_MERGE_COMMIT_SHA1}"
-git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "${PUBLIC_SQ_HEAD_SHA1}"
+git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/master" "${PROJECT_MERGE_COMMIT_SHA1}"
+git update-ref "${REF_TREE_ROOT}/${TIMESTAMP}/public_master" "${PUBLIC_PROJECT_HEAD_SHA1}"
 
 info "done"
 
