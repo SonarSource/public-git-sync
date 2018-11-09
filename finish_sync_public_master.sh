@@ -30,7 +30,7 @@ latest_ref() {
 
 # Verify that two refs are "public-equivalent": only have differences in private/
 validate_public_equivalent_refs() {
-  if git diff --name-only "$1" "$2" | grep -q "^private/"; then
+  if git diff --name-only "$1" "$2" | grep -v "^private/" >/dev/null; then
     error "Illegal state: '$1' and '$2' should only differ in private/"
     info "Investigate the output of: git diff --name-only $1 $2"
     exit 1
