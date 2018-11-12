@@ -90,15 +90,6 @@ same_refs() {
   [ "$(sha1 "$1")" = "$(sha1 "$2")" ]
 }
 
-# Verify that two refs are "public-equivalent": only have differences in private/
-validate_public_equivalent_refs() {  
-  if git diff --name-only "$1" "$2" | grep -v "^private/" >/dev/null; then
-    error "Illegal state: '$1' and '$2' should only differ in private/"
-    info "Investigate the output of: git diff --name-only $1 $2"
-    exit 1
-  fi
-}
-
 commit() {
   git log -n 1 --pretty="%h - %s (%an %cr)" "$1"
 }
@@ -130,8 +121,6 @@ git fetch --no-tags "${PUBLIC_REMOTE}"
 
 # ensure we have an up to date local branch public_master of ${PUBLIC_REMOTE}/master
 recreate_and_checkout "public_master" "${PUBLIC_REMOTE}/master"
-
-validate_public_equivalent_refs "public_master" "master"
 
 info "Reading references..."
 LATEST_PUBLIC_MASTER_REF="$(latest_ref "${REF_TREE_ROOT}/*/public_master")"
