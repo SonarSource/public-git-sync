@@ -153,7 +153,7 @@ recreate_and_checkout "master_work" "master"
 # remove private repo data since LATEST_MASTER_REF
 info "Deleting private data from master_work..."
 pause
-git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_MASTER_REF}..HEAD
+git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ .github/ -r' ${LATEST_MASTER_REF}..HEAD
 
 # (re)create public_master_work from public_master
 recreate_and_checkout "public_master_work" "public_master"
