@@ -56,14 +56,14 @@ cherry_pick() {
 }
 
 info() {
-  local MESSAGE="$1"
-  echo "[INFO] ${MESSAGE}"
+  local message="$1"
+  echo "[INFO] ${message}"
 }
 
 error() {
-  local MESSAGE="$1"
+  local message="$1"
   echo 
-  echo "[ERROR] ${MESSAGE}"
+  echo "[ERROR] ${message}"
 }
 
 pause() {
@@ -148,6 +148,7 @@ fi
 
 if same_refs "${BRANCH}" "${LATEST_BRANCH_REF}"; then
   info "no new commit to merge"
+  rm "$cherry_pick_sh"
   exit 0
 fi
 
@@ -181,10 +182,9 @@ if [ "$cherry_pick_failed" ]; then
   info "Resolve the current cherry-pick, and then run bash $cherry_pick_sh to continue."
   info "Finally, run 'finish_sync_public_branch.sh ${BRANCH}' to complete the recovery."
   exit 1
-fi
-
-if [ ! "$cherry_pick_failed" ]; then
+else
   rm "$cherry_pick_sh"
 fi
+
 
 "$script_dir/finish_sync_public_branch.sh" "${BRANCH}"
