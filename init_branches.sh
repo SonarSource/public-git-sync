@@ -36,10 +36,10 @@ PUBLIC_REMOTE_URL="${2}"
 BRANCH="${3}"
 PUBLIC_BRANCH="public_${BRANCH}"
 REF_TREE_ROOT="refs/public_sync"
-# in branch master_public, created from SonarSource/slang master
-PUBLIC_PROJECT_HEAD_SHA1="88b6f0111c4bfdb243b9beaa531a6c7a49ac30b0"
-# in branch master
-PROJECT_MERGE_COMMIT_SHA1="d169e263121b02a1332e8936793705820c7a10d3"
+# in branch public_branch-7.9, created from SonarSource/sonarqube master last shared commit with branch-7.9
+PUBLIC_PROJECT_HEAD_SHA1="0dc7f1ec3d08fd5cd39e23b35b236bbfa7ec8ae6"
+# in branch branch-7.9
+PROJECT_MERGE_COMMIT_SHA1="9d45cf3bd58bafc6acbfac447fc70a1b5fe2f050"
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
