@@ -22,6 +22,11 @@
 
 set -euo pipefail
 
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+source "${script_dir}/log_utils.sh"
+source "${script_dir}/git_utils.sh"
+
 REF_TREE_ROOT="refs/public_sync"
 PRIVATE_REMOTE="origin"
 PUBLIC_REMOTE="${1}"
@@ -30,8 +35,6 @@ BRANCH="${3}"
 WORK_BRANCH="${BRANCH}_work"
 PUBLIC_BRANCH="public_${BRANCH}"
 PUBLIC_WORK_BRANCH="public_${BRANCH}_work"
-
-script_dir=$(dirname "${BASH_SOURCE[0]}")
 
 cherry_pick_failed=
 cherry_pick_sh=cherry-pick.${BRANCH}.$$.sh
@@ -55,59 +58,14 @@ cherry_pick() {
   fi
 }
 
-info() {
-  local message="$1"
-  echo "[INFO] ${message}"
-}
-
-error() {
-  local message="$1"
-  echo 
-  echo "[ERROR] ${message}"
-}
-
 pause() {
   echo "pause..."
 #  read
 }
 
-recreate_and_checkout() {
-  local branch="$1"
-  local new_head="$2"
-
-  info "refresh ${branch} to ${new_head}"
-  if [ "$(git branch --list "${branch}")" ]; then
-    git branch -D "${branch}"
-  fi
-  # "--no-track" to not set upstream to avoid any push to the wrong remote by forcing push command to specify remote
-  git checkout --no-track -b "${branch}" "${new_head}"
-}
-
-latest_ref() {
-  local pattern="$1"
-  git for-each-ref --count=1 --sort=-refname "$pattern" --format='%(refname)'
-}
-
 sync_date() {
   local ref="$1"
   cut -d/ -f3 <<< "$ref"
-}
-
-sha1() {
-  git rev-parse "$1"
-}
-
-same_refs() {
-  [ "$(sha1 "$1")" = "$(sha1 "$2")" ]
-}
-
-commit() {
-  git log -n 1 --pretty="%h - %s (%an %cr)" "$1"
-}
-
-has_single_parent() {
-  local parents=$(git show -s --pretty=%P "$1")
-  [[ $parents != *\ * ]]
 }
 
 info "Fetching branches and refs from remote ${PRIVATE_REMOTE}..."

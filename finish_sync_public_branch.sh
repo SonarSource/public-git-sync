@@ -10,6 +10,11 @@
 
 set -euo pipefail
 
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+source "${script_dir}/log_utils.sh"
+source "${script_dir}/git_utils.sh"
+
 REF_TREE_ROOT="refs/public_sync"
 TIMESTAMP="$(date +"%Y-%m-%d_%H-%M-%S")"
 BRANCH="${1}"
@@ -17,25 +22,9 @@ WORK_BRANCH="${BRANCH}_work"
 PUBLIC_BRANCH="public_${BRANCH}"
 PUBLIC_WORK_BRANCH="public_${BRANCH}_work"
 
-info() {
-  local message="$1"
-  echo "[INFO] ${message}"
-}
-
-error() {
-  local message="$1"
-  echo 
-  echo "[ERROR] ${message}"
-}
-
 pause() {
   echo "pause..."
 #  read
-}
-
-latest_ref() {
-  local pattern="$1"
-  git for-each-ref --count=1 --sort=-refname "$pattern" --format='%(refname)'
 }
 
 # Verify that two refs are "public-equivalent": only have differences in private/
