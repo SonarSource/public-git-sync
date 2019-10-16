@@ -19,31 +19,21 @@
 
 set -euo pipefail
 
+script_dir=$(dirname "${BASH_SOURCE[0]}")
+
+source "${script_dir}/log_utils.sh"
+source "${script_dir}/git_utils.sh"
+
 PUBLIC_REMOTE="${1}"
 PRIVATE_REMOTE="origin"
 REF_TREE_ROOT="refs/public_sync"
 BRANCH="${2}"
 PUBLIC_BRANCH="public_${BRANCH}"
 
-info() {
-  local message="$1"
-  echo "[INFO] ${message}"
-}
-
-error() {
-  local message="$1"
-  echo "[ERROR] ${message}"
-}
-
-pause() {
-  echo "pause..."
-  read
-}
-
 # to know where we are
 git checkout "${PUBLIC_BRANCH}"
 
-info "Pushing ${PUBLIC_BRANCH}..."
+info "Pushing ${PUBLIC_BRANCH} to private repository and ${BRANCH} to public repository..."
 git push "${PRIVATE_REMOTE}" "${PUBLIC_BRANCH}:${PUBLIC_BRANCH}"
 git push "${PUBLIC_REMOTE}" "${PUBLIC_BRANCH}:${BRANCH}"
 
