@@ -60,12 +60,9 @@ info "Fetching branches and refs from remote ${PRIVATE_REMOTE}..."
 git fetch --no-tags
 git fetch --no-tags "${PRIVATE_REMOTE}" "+${REF_TREE_ROOT}/*:${REF_TREE_ROOT}/*"
 
-if ! git remote | grep -qxF "${PUBLIC_REMOTE}"; then
-  info "Creating remote ${PUBLIC_REMOTE}..."
-  git remote add "${PUBLIC_REMOTE}" "${PUBLIC_REMOTE_URL}"
-fi
 
 info "Fetching branches from remote ${PUBLIC_REMOTE}..."
+create_or_check_remote "${PUBLIC_REMOTE}" "${PUBLIC_REMOTE_URL}" || fatal "Remote ${PUBLIC_REMOTE} exists but does not have the expected URL"
 git fetch --no-tags "${PUBLIC_REMOTE}"
 
 # fail if private branch ${BRANCH} does not exist

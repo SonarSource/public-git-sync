@@ -15,6 +15,32 @@ same_refs() {
   [ "$(sha1 "$1")" = "$(sha1 "$2")" ]
 }
 
+remote_name_exists() {
+  local remote_name="${1}"
+
+  git remote | grep -qxF "${remote_name}"
+}
+
+remote_exists() {
+  local remote_name="${1}"
+  local remote_url="${2}"
+
+  # counting matching lines to ensure both push and fetch are bound to the expected URL
+  [ "$(git remote -v | grep -F "${remote_name}" | grep -F "${remote_url}" | wc -l)" = "2" ]
+}
+
+create_or_check_remote() {
+  local remote_name="${1}"
+  local remote_url="${2}"
+
+  if remote_name_exists "${remote_name}"; then
+    remote_exists "${remote_name}" "${remote_url}"
+  else
+    info "Creating remote ${remote_name} (${remote_url})..."
+    git remote add "${remote_name}" "${remote_url}"
+  fi
+}
+
 local_branch_exists() {
   local branch_name="${1}"
 
