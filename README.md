@@ -28,6 +28,10 @@ Copyright 2018-2019 SonarSource.
 
 Currently private to SonarSource, there is no license.
 
+## Authors
+
+Sébastien Lesaint and Janos Gyerik
+
 # How to use
 
 ## Prerequesites
