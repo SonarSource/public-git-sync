@@ -26,7 +26,7 @@ The tool is made of 4 bash scripts to be called, **in order**:
 
 Copyright 2018-2019 SonarSource.
 
-Currently private to SonarSource, there is no license.
+Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
 
 ## Authors
 
