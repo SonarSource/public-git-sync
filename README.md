@@ -22,16 +22,6 @@ The tool is made of 4 bash scripts to be called, **in order**:
 
 **All scripts must be run from the root directory of a clone of the private repository**
 
-## License
-
-Copyright 2018-2019 SonarSource.
-
-Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
-
-## Authors
-
-Sébastien Lesaint and Janos Gyerik
-
 # How to use
 
 ## Prerequesites
@@ -298,3 +288,13 @@ git fetch --no-tags origin "+refs/public_sync/*:refs/public_sync/*"
 ```
 
 Github does not copy synchronization refs when forking a repository. They will have to be copied manually.
+
+## License
+
+Copyright 2018-2020 SonarSource.
+
+Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
+
+## Authors
+
+Sébastien Lesaint and Janos Gyerik
