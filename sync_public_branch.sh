@@ -114,7 +114,7 @@ recreate_and_checkout "${WORK_BRANCH}" "${BRANCH}"
 # remove private repo data since LATEST_BRANCH_REF
 info "Deleting private data from ${WORK_BRANCH}..."
 pause
-git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch private/ -r' ${LATEST_BRANCH_REF}..HEAD
+git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch -r -- private/ .github/workflows/' ${LATEST_BRANCH_REF}..HEAD
 
 # (re)create ${PUBLIC_WORK_BRANCH} from ${PUBLIC_BRANCH}
 recreate_and_checkout "${PUBLIC_WORK_BRANCH}" "${PUBLIC_BRANCH}"
