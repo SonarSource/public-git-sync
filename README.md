@@ -22,6 +22,12 @@ The tool is made of 4 bash scripts to be called, **in order**:
 
 **All scripts must be run from the root directory of a clone of the private repository**
 
+# Modifications
+
+## sonar-enterprise
+The `sonar-enterprise` repository uses a modified version of this script, which excludes the GitHub Action workflows folder (`.github/workflows`).
+It is available on the `sonar-enterprise` branch.
+
 # How to use
 
 ## Prerequesites
