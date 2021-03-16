@@ -46,7 +46,7 @@ These elements are mandatory for `sync_public_branch.sh` to run.
 To do the initialization, you will need:
 
 1. the name of the branch to synchronize
-2. a pair of commits which you know are synchronized with each other (aka. a pair of "synchronized commits")
+2. a pair of commits (one private, one public) which you know are synchronized with each other (aka. a pair of "synchronized commits")
   * when synchronizing master, it will likely be the first commit ever in master (assuming it has no content in `private` directory already)
   * when synchronizing another branch than master, assuming master is synchronized, it will be the synchronized commits of the fork point of that branch with master
 
