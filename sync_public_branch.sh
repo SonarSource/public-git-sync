@@ -128,7 +128,7 @@ for sha1 in $(git rev-list --reverse ${LATEST_BRANCH_REF}..${WORK_BRANCH}); do
   else
     mainline_args='-m 2'
   fi
-  cherry_pick --keep-redundant-commits --allow-empty --strategy=recursive -X ours $mainline_args "$sha1"
+  cherry_pick --keep-redundant-commits --allow-empty --strategy=recursive -Xno-renames -X ours $mainline_args "$sha1"
 done
 
 if [ "$cherry_pick_failed" ]; then
