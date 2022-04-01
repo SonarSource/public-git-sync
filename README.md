@@ -56,6 +56,8 @@ Here is an example of initialization with branch `branch-7.9` of the `sonar-ente
 git clone --branch=sonar-enterprise git@github.com:sonarsource/public-git-sync.git synchronization
 git clone git@github.com:sonarsource/sonar-enterprise.git
 cd sonar-enterprise
+# Usage:
+#   initialize_branch_synchronization.sh PUBLIC_REMOTE_NAME PUBLIC_REMOTE_GIT_URL BRANCH_NAME PRIVATE_COMMIT_HASH PUBLIC_COMMIT_HASH
 ../synchronization/initialize_branch_synchronization.sh sq git@github.com:sonarsource/sonarqube.git branch-7.9 9d45cf3bd58bafc6acbfac447fc70a1b5fe2f050 0dc7f1ec3d08fd5cd39e23b35b236bbfa7ec8ae6
 ```
 
