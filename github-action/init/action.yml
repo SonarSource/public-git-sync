@@ -1,5 +1,5 @@
 name: public git sync - init
-description: Initialize a new branch for public syncronisation
+description: Initialize a new branch for public synchronisation
 
 inputs:
   public-repo:
