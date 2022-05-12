@@ -1,0 +1,72 @@
+name: public git sync - init
+description: Initialize a new branch for public synchronisation
+
+inputs:
+  public-repo:
+    description: Public repository
+    required: true
+  branch:
+    description: Branch to sync to public repo
+    required: true
+  branch-ref-private:
+    description: sha1 of the commit in branch "[branch_name]" in private repository to synchonize (can be different from the current head)
+    required: true
+  branch-head-ref-public:
+    description: sha1 of the head commit of branch "[branch_name]" in public repository
+    required: true
+  github-token:
+    description: GitHub token with push access to the private and public repo
+    required: true
+  skip-validation:
+    description: Run without validation
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout private repository
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b # tag=v3.0.2
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.github-token }}
+        persist-credentials: true
+    - name: Setup sync tooling
+      shell: bash
+      run: |
+        realpath "${{ github.action_path }}/../.." >> $GITHUB_PATH
+        git config --add user.name SonarTech
+        git config --add user.email "sonartech@sonarsource.com"
+        git config --add checkout.defaultRemote origin
+    - name: Validate branch-ref-private
+      if: ${{ inputs.skip-validation != 'true' }}
+      shell: bash
+      env:
+        BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        BRANCH_NAME: ${{ inputs.branch }}
+        BRANCH_REF_PRIVATE: ${{ inputs.branch-ref-private }}
+      run: |
+        MERGE_BASE=$(git merge-base "origin/${BRANCH_NAME}" "origin/${BASE_BRANCH}")
+        [[ "${MERGE_BASE}" == "${BRANCH_REF_PRIVATE}" ]] || { echo "::error title=Validation failed::${MERGE_BASE} != ${BRANCH_REF_PRIVATE}"; exit 1; }
+        echo "MERGE_BASE=${MERGE_BASE}" >> $GITHUB_ENV
+    - name: Validate branch-head-ref-public
+      if: ${{ inputs.skip-validation != 'true' }}
+      shell: bash
+      env:
+        PUBLIC_REPO: ${{ inputs.public-repo }}
+        BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        BRANCH_HEAD_REF_PUBLIC: ${{ inputs.branch-head-ref-public }}
+      run: |
+        git remote add sq "https://github.com/${PUBLIC_REPO}.git"
+        git fetch sq
+        AUTHOR=$(git show -s --format=format:%ae "${MERGE_BASE}")
+        DATE=$(git show -s --format=format:%ci "${MERGE_BASE}")
+        MERGE_BASE_PUBLIC=$(git rev-list --author="${AUTHOR}" --since="${DATE}" --reverse "sq/${BASE_BRANCH}" | head -n1)
+        [[ "${MERGE_BASE_PUBLIC}" == "${BRANCH_HEAD_REF_PUBLIC}" ]] || { echo "::error title=Validation failed::${MERGE_BASE_PUBLIC} != ${BRANCH_HEAD_REF_PUBLIC}"; exit 1; }
+    - name: Initialize synchronization
+      shell: bash
+      env:
+        PUBLIC_REPO: ${{ inputs.public-repo }}
+        BRANCH_NAME: ${{ inputs.branch }}
+        BRANCH_REF_PRIVATE: ${{ inputs.branch-ref-private }}
+        BRANCH_HEAD_REF_PUBLIC: ${{ inputs.branch-head-ref-public }}
+      run: initialize_branch_synchronization.sh sq "https://github.com/${PUBLIC_REPO}.git" "${BRANCH_NAME}" "${BRANCH_REF_PRIVATE}" "${BRANCH_HEAD_REF_PUBLIC}"
