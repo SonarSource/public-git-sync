@@ -86,7 +86,7 @@ info "*******************************************************"
 info "**** Caution: remote repositories will be modified ****"
 info "*******************************************************"
 info "Press enter to proceed, CTRL+C to quit"
-read
+[ -v GITHUB_ACTIONS ] || read
 
 # create/recreate ${BRANCH} and ${PUBLIC_BRANCH} locally
 recreate_and_checkout "${BRANCH}" "${BRANCH_REFERENCE}"
