@@ -60,7 +60,8 @@ runs:
         git fetch sq
         AUTHOR=$(git show -s --format=format:%ae "${MERGE_BASE}")
         DATE=$(git show -s --format=format:%ci "${MERGE_BASE}")
-        MERGE_BASE_PUBLIC=$(git rev-list --author="${AUTHOR}" --since="${DATE}" --reverse "sq/${BASE_BRANCH}" | head -n1)
+        TITLE=$(git show -s --format=format:%s "${MERGE_BASE}")
+        MERGE_BASE_PUBLIC=$(git rev-list --author="${AUTHOR}" --since="${DATE}" --fixed-strings --grep="${TITLE}" --reverse "sq/${BASE_BRANCH}" | head -n1)
         [[ "${MERGE_BASE_PUBLIC}" == "${BRANCH_HEAD_REF_PUBLIC}" ]] || { echo "::error title=Validation failed::${MERGE_BASE_PUBLIC} != ${BRANCH_HEAD_REF_PUBLIC}"; exit 1; }
     - name: Initialize synchronization
       shell: bash
