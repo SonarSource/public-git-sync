@@ -22,9 +22,7 @@ The tool is made of 4 bash scripts to be called, **in order**:
 
 **All scripts must be run from the root directory of a clone of the private repository**
 
-# Modifications
-
-## sonar-enterprise
+### sonar-enterprise branch
 The `sonar-enterprise` repository uses a modified version of this script, which excludes the GitHub Action workflows folder (`.github/workflows`).
 It is available on the `sonar-enterprise` branch.
 
@@ -294,6 +292,45 @@ git fetch --no-tags origin "+refs/public_sync/*:refs/public_sync/*"
 ```
 
 Github does not copy synchronization refs when forking a repository. They will have to be copied manually.
+
+## Contributing
+
+Commit should be pushed at first on:
+- `master` if applicable
+- `sonar-enterprise` if specific
+
+Then, if `master` has new commits, a "GitHub rebase and merge" should be performed from `master` to `sonar-enterprise`.
+
+---
+Starting from this situation, when working with protected branches
+
+```
+* M3 - (master) New commits on master
+* M2
+* M1
+| * S3 - (tag: v0.2.0, sonar-enterprise) Custom commits on sonar-enterprise
+| * S2
+| * S1
+|/  
+* 00 - Common commits
+*
+```
+
+Then, perform a GitHub "Rebase and Merge", that is actually a **complete cherry-pick**
+```
+* M3' - (sonar-enterprise) New commits from master
+* M2'
+* M1'
+* S3 - (tag: v0.2.0) Custom commits on sonar-enterprise
+* S2
+* S1
+| * M3 - (master) New commits on master
+| * M2
+| * M1
+|/  
+* 00 - Common commits
+* 
+```
 
 ## License
 
