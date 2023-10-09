@@ -34,11 +34,11 @@ PUBLIC_BRANCH="public_${BRANCH}"
 git checkout "${PUBLIC_BRANCH}"
 
 info "Pushing ${PUBLIC_BRANCH} to private repository..."
-git push "${PRIVATE_REMOTE}" "${PUBLIC_BRANCH}:${PUBLIC_BRANCH}"
+git push --force-with-lease "${PRIVATE_REMOTE}" "${PUBLIC_BRANCH}:${PUBLIC_BRANCH}"
 
 info "Pushing refs to private repository..."
 TMP_EXISTING_REFS_FILE=$(mktemp)
-git ls-remote "${PRIVATE_REMOTE}" | cut -f 2 | grep "^${REF_TREE_ROOT}/" > ${TMP_EXISTING_REFS_FILE} || true
+git ls-remote "${PRIVATE_REMOTE}" | cut -f 2 | grep "^${REF_TREE_ROOT}/" > "${TMP_EXISTING_REFS_FILE}" || true
 for ref in $(git for-each-ref "${REF_TREE_ROOT}" | cut -f 2 | grep -v --file="${TMP_EXISTING_REFS_FILE}"); do
   echo "committing ref $ref"
   git push "${PRIVATE_REMOTE}" "${ref}"

@@ -53,8 +53,8 @@ REF_TREE_ROOT="refs/public_sync"
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
-# just to predictively know on which branch we current are
-git checkout master
+# just to predicatively know on which branch we current are
+git checkout --detach master
 
 info "Fetching branches and refs from remote ${PRIVATE_REMOTE}..."
 git fetch --no-tags
@@ -68,7 +68,7 @@ git fetch --no-tags "${PUBLIC_REMOTE}"
 # fail if private branch ${BRANCH} does not exist
 branch_exists "${PRIVATE_REMOTE}/${BRANCH}" || fatal "Branch ${BRANCH} does not exist in private repository"
 
-# fail if synchronzization is already initialized (even only partially)
+# fail if synchronization is already initialized (even only partially)
 private_references="$(git for-each-ref --count=1 "${REF_TREE_ROOT}/*/${BRANCH}")"
 public_references="$(git for-each-ref --count=1 "${REF_TREE_ROOT}/*/${PUBLIC_BRANCH}")"
 if [ "${private_references}" ] || [ "${public_references}" ]; then
@@ -94,7 +94,7 @@ recreate_and_checkout "${PUBLIC_BRANCH}" "${PUBLIC_BRANCH_HEAD}"
 
 # if ${BRANCH} already exist in public repository, ensure its HEAD is ${PUBLIC_BRANCH_HEAD}"
 if branch_exists "${PUBLIC_REMOTE}/${BRANCH}" && ! same_refs "${PUBLIC_REMOTE}/${BRANCH}" "${PUBLIC_BRANCH}"; then
-  fatal "Head of ${PUBLIC_REMOTE}/${PUBLIC_BRANCH} ($(commit "${PUBLIC_REMOTE}/${branch}")) is not the expected commit ($(commit "${PUBLIC_BRANCH_HEAD}"))"
+  fatal "Head of ${PUBLIC_REMOTE}/${PUBLIC_BRANCH} ($(commit "${PUBLIC_REMOTE}/${BRANCH}")) is not the expected commit ($(commit "${PUBLIC_BRANCH_HEAD}"))"
 fi
 
 info "Pushing ${PUBLIC_BRANCH} to private repository..."
