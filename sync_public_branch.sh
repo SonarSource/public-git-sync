@@ -116,6 +116,12 @@ info "Deleting private data from ${WORK_BRANCH}..."
 pause
 git filter-branch -f --prune-empty --index-filter 'git rm --cached --ignore-unmatch -r -- private/ .github/workflows/' ${LATEST_BRANCH_REF}..HEAD
 
+# remove PR numbers from commit messages, as they point to the wrong link.
+git filter-branch -f --msg-filter "sed 's/[[:space:]](#[[:digit:]]\+)//g'"  ${LATEST_BRANCH_REF}..HEAD
+
+# Set commit time to be the same with author-time to reflect better the private repository
+git filter-branch -f --env-filter 'export GIT_COMMITTER_DATE="$GIT_AUTHOR_DATE"'  ${LATEST_BRANCH_REF}..HEAD 
+
 # (re)create ${PUBLIC_WORK_BRANCH} from ${PUBLIC_BRANCH}
 recreate_and_checkout "${PUBLIC_WORK_BRANCH}" "${PUBLIC_BRANCH}"
 
@@ -139,6 +145,5 @@ if [ "$cherry_pick_failed" ]; then
 else
   rm "$cherry_pick_sh"
 fi
-
 
 "$script_dir/finish_sync_public_branch.sh" "${BRANCH}"
