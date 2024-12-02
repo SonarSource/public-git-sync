@@ -96,7 +96,7 @@ fi
 info "Latest sync merged \"$(commit "${LATEST_BRANCH_REF}")\" into branch ${PUBLIC_BRANCH} as \"$(commit "${LATEST_PUBLIC_BRANCH_REF}")\" with timestamp \"${LATEST_BRANCH_SYNC_DATE}\""
 
 if ! same_refs "${PUBLIC_BRANCH}" "${LATEST_PUBLIC_BRANCH_REF}"; then
-  error "Latest reference to public ${BRANCH} ($(sha1 "${LATEST_PUBLIC_BRANCH_REF}")) is not HEAD of branch ${PUBLIC_BRANCH}. Previous run of synchonization script left an inconsistent state"
+  error "Latest reference to public ${BRANCH} ($(sha1 "${LATEST_PUBLIC_BRANCH_REF}")) is not HEAD of branch ${PUBLIC_BRANCH}. Previous run of synchronization script left an inconsistent state"
   exit 1
 fi
 
