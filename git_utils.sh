@@ -26,7 +26,7 @@ remote_exists() {
   local remote_url="${2}"
 
   # counting matching lines to ensure both push and fetch are bound to the expected URL
-  [ "$(git remote -v | grep -F "${remote_name}" | grep -F "${remote_url}" | wc -l)" = "2" ]
+  [ "$(git remote -v | grep -F "${remote_name}" | grep -c -F "${remote_url}")" = "2" ]
 }
 
 create_or_check_remote() {
@@ -72,7 +72,8 @@ latest_ref() {
 }
 
 has_single_parent() {
-  local parents=$(git show -s --pretty=%P "$1")
+  local parents
+  parents=$(git show -s --pretty=%P "$1")
   [[ $parents != *\ * ]]
 }
 

@@ -29,8 +29,8 @@ pause() {
 
 # Verify that two refs are "public-equivalent": only have differences in private/
 validate_public_equivalent_refs() {
-  if git diff --name-only "$1" "$2" | grep -v "^\(private\|\"private\|.github/workflows\)/" >/dev/null; then
-    error "Illegal state: '$1' and '$2' should only differ in private/"
+  if git diff --name-only "$1" "$2" | grep -E -v '^"?(private|.github/workflows)' >/dev/null; then
+    error "Illegal state: '$1' and '$2' should only differ in private/ and .github/workflows"
     info "Investigate the output of: git diff --name-only $1 $2"
     exit 1
   fi
@@ -42,7 +42,7 @@ LATEST_PUBLIC_BRANCH_REF="$(latest_ref "${REF_TREE_ROOT}/*/${PUBLIC_BRANCH}")"
 
 info "Clearing any empty commit in ${WORK_BRANCH}..."
 pause
-git filter-branch -f --prune-empty ${LATEST_PUBLIC_BRANCH_REF}..HEAD
+git filter-branch -f --prune-empty "${LATEST_PUBLIC_BRANCH_REF}"..HEAD
 
 # merge ${PUBLIC_WORK_BRANCH} into ${PUBLIC_BRANCH} (ff-only for safety)
 info "update ${PUBLIC_BRANCH}"
